@@ -1,4 +1,3 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fetch = require("node-fetch");
 const cheerio = require("cheerio");
 
@@ -120,12 +119,6 @@ async function scrapeSite(url) {
 }
 
 async function runMasterV1(category, agName, url, apiKey) {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    systemInstruction: MASTER_PROTOCOL,
-  });
-
   const context = await scrapeSite(url);
   const h3Bypass = "Last Updated: {CUSTOMIZER.Month:2026}";
 
@@ -149,14 +142,33 @@ async function runMasterV1(category, agName, url, apiKey) {
     - ALL DESCRIPTIONS: Strictly 80-90 characters. Every sentence must be COMPLETE and end with punctuation.
 
     JSON Output format: {"headlines": [], "descriptions": []}
+    IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.
   `;
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.5, responseMimeType: "application/json" },
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: MASTER_PROTOCOL },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.5,
+      response_format: { type: "json_object" },
+    }),
   });
 
-  const text = result.response.text();
+  const result = await response.json();
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  const text = result.choices[0].message.content;
   const data = JSON.parse(text);
   let h = (data.headlines || []).map((x) => smartTrim(x, 30));
   const d = (data.descriptions || []).map((x) => smartTrim(x, 90, 80));
@@ -213,9 +225,9 @@ exports.handler = async (event) => {
       return { statusCode: 401, headers, body: JSON.stringify({ error: "Invalid password" }) };
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return { statusCode: 500, headers, body: JSON.stringify({ error: "GEMINI_API_KEY not configured" }) };
+      return { statusCode: 500, headers, body: JSON.stringify({ error: "OPENAI_API_KEY not configured" }) };
     }
 
     const result = await runMasterV1(category, agName, url, apiKey);
