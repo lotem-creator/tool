@@ -5,43 +5,55 @@ const MASTER_PROTOCOL = `
 Role: Senior PPC Copywriter expert in Direct Response for Search Ads (RSA). You generate ad assets optimized for High CTR and Quality Score.
 
 Step 1: Analysis & Extraction
-- Scan URL context for the strongest offers and promotions. Extract the primary value proposition.
-- INDUSTRY NOUN SELECTION: Identify the niche. Choose the best PLURAL noun (e.g., "Programs" for Tax, "Medications" for Pharma, "Apps" for Software). 
-- REDUNDANCY RULE: If the Ad Group Name already contains the chosen noun (e.g., "App"), DO NOT repeat it (e.g., use "10 Best App Builders" instead of "10 Best App Builder Apps").
+- Scan URL context for the strongest offers and promotions. Extract the primary value proposition (e.g., "50% Off", "Money Back Guarantee", "Get $30 Free").
+- INDUSTRY NOUN SELECTION: Scan the context to identify the niche. Choose the most professional PLURAL noun (e.g., "Programs" for Tax, "Medications" for Pharma, "Apps" for Software, "Builders" for Tools).
+- REDUNDANCY RULE: Do not repeat nouns. If the Ad Group Name contains the noun (e.g., "App Builder"), do not add "Apps" again at the end.
 - SPELLING FIX: Automatically fix typos in the Ad Group Name (e.g., "bulid" -> "build").
+- Strip brand names: Use generic category terms only to ensure broad quality score relevance and avoid policy issues with competitors.
 
 Step 2: Asset Structure & Character Limits
 Headlines (Max 30 chars):
-- HL1: "10 Best [Fixed AG Name] [Chosen Noun]" (Must be Plural).
-- HL2: "Top 10 [Fixed AG Name] [Chosen Noun]" (Mirror HL1).
+- HL1: "10 Best [Fixed AG Topic] [Chosen Noun]" (Must be Plural). Example: "10 Best Semaglutide Medications".
+- HL2: "Top 10 [Fixed AG Topic] [Chosen Noun]" (Mirror HL1).
+  *MIRROR RULE*: HL2 must use the exact same noun and topic as HL1, but switch "10 Best" to "Top 10".
+  *AUTHORITY RULE*: Match the noun to the category. Use "Sites" for Casino, "Services" for Tax/Legal, "Apps" for VPN, "Providers", "Systems", or "Treatments".
+  STRICT: Ensure the noun is PLURAL (e.g., Systems instead of System). AVOID generic words like "Options" or "Programs" for medical niches.
 - HL3 (Bypass): MUST BE EXACTLY: Updated: {=CUSTOMIZER.Month}
 - HL4: The strongest generic promotion found. 
-  *SANITY CHECK*: NEVER exceed 95% off. If a higher number is found, use "Best Price Guaranteed".
-  *STRICT*: Use full words (e.g., "Months" instead of "Mo.").
-- HL5-6: [Fixed AG Name] + core benefit. 
-  NEVER end HL5-6 with a hyphen (-) or a hanging word.
-- HL7-15: 9 UNIQUE high-conversion marketing hooks. No repetition.
+  *REALISM RULE*: NEVER exceed 95% off. If context says 100% or more, use "Special Offer Today".
+  *STRICT RULE*: ALWAYS use full words (e.g., "Months" instead of "Mo.", "First" instead of "1st", "Off" instead of "Disc") if the total length remains under 30 characters.
+- HL5-6: [Fixed AG Name] + core benefit.
+  *CRITICAL*: If [AG Name] is long (over 15 chars), shorten it and use a high-impact verb (e.g., "Resolve Debt Now", "Lose Weight Fast").
+  NEVER end HL5-6 with a hyphen (-) or a hanging word like "no", "with", "the", "if", "you".
+- HL7-15: 9 UNIQUE high-conversion marketing hooks. No repetition. Examples: "Verified Results", "100% Satisfaction", "Start In Minutes", "Expert Advisors".
 
 Descriptions (Strictly 80-90 characters):
-- Description 1: MUST start with "Find the best". 
-  Template: "Find the best [Fixed AG Name]. [Offer found in HL4]. [Short CTA]."
-- Description 2: MUST start with "Compare the best". 
-  Template: "Compare the best [Fixed AG Name]. [Benefit details]. [Short CTA]."
-- Description 3: A punchy list of 3-4 features separated by dots.
-- Description 4: A high-urgency, aggressive closing statement.
+- Description 1: MUST start with "Find the best".
+  Template: "Find the best [Fixed AG Name]. Get [Offer found in HL4]. [Short CTA]." (Total 80-90 chars).
+- Description 2: MUST start with "Compare the best".
+  Template: "Compare the best [Fixed AG Name]. [Offer details]. [Short CTA]." (Total 80-90 chars).
+- Description 3 (Contextual Feature List): A punchy list of 3-4 features separated by dots.
+  Example: "A+ BBB Rating. 24/7 Expert Support. No Credit Impact. Fast Online Application."
+- Description 4 (Hard-Sale Closing): A high-urgency, aggressive closing statement.
+  Example: "Stop IRS collections today. Resolve your tax debt now. Call for a free consultation!"
 
 Step 3: Final Polishing Rules
 - NO BRAND NAMES. FULL WORDS ONLY. COMPLETE THOUGHTS ONLY.
-- Every description must finish its last sentence completely with a period, exclamation mark, or question mark.
-- Ensure NO hanging words or symbols at the end.
+- Every asset must make sense on its own. Every description must finish its last sentence completely with a period, exclamation mark, or question mark.
+- Ensure NO hanging words or symbols at the end (like "for", "the", "on", "of", "to", "with", "&", "+", "Secure", "Start", "Find", "Compare", "no", "if", "you").
 - Output MUST be in JSON format.
 `;
 
 function smartTrim(text, limit, minLen = 0) {
   text = String(text).trim();
 
-  // הגנה על קוסטומייזרים - מניעת חיתוך של סוגריים מסולסלים
-  if (text.includes("{") && text.includes("}")) return text;
+  // הגנה על קוסטומייזרים - אם הטקסט מכיל סוגריים מסולסלים, לא חותכים אותו
+  if (text.includes("{") && text.includes("}")) {
+    return text;
+  }
+
+  // מסנן קשיח נגד הזיות של מספרים מעל 100% שדלפו מה-AI
+  text = text.replace(/1[0-9]{2}%/g, "50%"); 
 
   if (text.length > limit) {
     const truncated = text.substring(0, limit);
@@ -50,9 +62,9 @@ function smartTrim(text, limit, minLen = 0) {
   }
 
   const badEnds = [
-    " for", " with", " and", " the", " our", " get", " on", " a",
-    " your", " free", " of", " in", " to", " is", " or", " by",
-    " &", " +", " -", " secure", " start", " find", " compare",
+    " for", " with", " and", " the", " our", " get", " on", " a", " no",
+    " your", " free", " of", " in", " to", " is", " or", " by", " if", " you",
+    " &", " +", " -", " secure", " start", " find", " compare", " with no",
   ];
   const pattern = new RegExp(
     "(" + badEnds.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")$",
@@ -123,7 +135,7 @@ async function scrapeSite(url) {
 
 async function runMasterV1(category, agName, url, apiKey) {
   const context = await scrapeSite(url);
-  // הגדרת ה-Bypass הקשיח לקוסטומייזר
+  // הגדרה קשיחה של ה-Bypass כדי למנוע חיתוך או שינוי של ה-AI
   const h3Bypass = "Updated: {=CUSTOMIZER.Month}";
 
   const prompt = `
@@ -135,13 +147,14 @@ async function runMasterV1(category, agName, url, apiKey) {
 
     STRICT TASK INSTRUCTIONS:
     - FIX TYPOS: Correct "${agName}" if it has a spelling error.
-    - NOUN: Identify the niche and pick the best plural noun.
-    - REDUNDANCY: Avoid repeating words (e.g., if AG is "App Builder", don't say "App Builder Apps").
+    - NOUN: Identify the niche from context and pick the best plural industry noun.
+    - REDUNDANCY: Avoid repeating nouns (e.g., if AG is "App Builder", don't say "App Builder Apps").
     - HL1: "10 Best [Fixed AG] [Noun]".
     - HL2: "Top 10 [Fixed AG] [Noun]" (Mirror HL1).
     - HL3: MUST be EXACTLY "${h3Bypass}".
-    - HL4: Strongest offer. MAX 95% OFF. If context says 100% or more, use "Special Offer Today".
-    - ALL DESCRIPTIONS: Strictly 80-90 characters. Complete thoughts only.
+    - HL4: Extract the strongest offer. MAX 95% OFF. No hanging words like "if you".
+    - ALL ASSETS: Ensure NO hanging words like "no", "if", "you", "with" at the end.
+    - ALL DESCRIPTIONS: Strictly 80-90 characters. Every sentence must be COMPLETE and end with punctuation.
 
     JSON Output format: {"headlines": [], "descriptions": []}
   `;
@@ -158,7 +171,7 @@ async function runMasterV1(category, agName, url, apiKey) {
         { role: "system", content: MASTER_PROTOCOL },
         { role: "user", content: prompt },
       ],
-      temperature: 0.4,
+      temperature: 0.3,
       response_format: { type: "json_object" },
     }),
   });
@@ -175,8 +188,10 @@ async function runMasterV1(category, agName, url, apiKey) {
   let h = (data.headlines || []).map((x) => smartTrim(x, 30));
   const d = (data.descriptions || []).map((x) => smartTrim(x, 90, 80));
 
-  // דריסה סופית של HL3 כדי להבטיח קוסטומייזר תקין
-  if (h.length >= 3) h[2] = h3Bypass;
+  // דריסה סופית של HL3 כדי להבטיח קוסטומייזר תקין ללא תלות ב-AI
+  if (h.length >= 3) {
+    h[2] = h3Bypass;
+  }
 
   const catHooks = getCategoryFallbacks(category);
   const finalH = [];
