@@ -6,30 +6,33 @@ Role: Senior PPC Copywriter expert in Direct Response for Search Ads (RSA). You 
 
 Step 1: Analysis & Extraction
 - Scan URL context for the strongest offers and promotions. Extract the primary value proposition.
-- INDUSTRY NOUN SELECTION: Scan the context to identify the niche. Choose the most professional PLURAL noun (e.g., "Programs" for Tax/Debt, "Medications" for Pharma, "Apps" for Software, "Services" for Legal).
-- SPELLING FIX: If the Ad Group Name has a typo (e.g., "bulid"), FIX IT to proper English in all assets.
-- REALISM RULE: Ensure all offers are realistic and sourced from context. NEVER exceed 100% off.
+- INDUSTRY NOUN SELECTION: Identify the niche. Choose the best PLURAL noun (e.g., "Programs" for Tax, "Medications" for Pharma, "Apps" for Software). 
+- REDUNDANCY RULE: If the Ad Group Name already contains the chosen noun (e.g., "App"), DO NOT repeat it (e.g., use "10 Best App Builders" instead of "10 Best App Builder Apps").
+- SPELLING FIX: Automatically fix typos in the Ad Group Name (e.g., "bulid" -> "build").
 
 Step 2: Asset Structure & Character Limits
 Headlines (Max 30 chars):
 - HL1: "10 Best [Fixed AG Name] [Chosen Noun]" (Must be Plural).
 - HL2: "Top 10 [Fixed AG Name] [Chosen Noun]" (Mirror HL1).
 - HL3 (Bypass): MUST BE EXACTLY: Updated: {=CUSTOMIZER.Month}
-- HL4: The strongest generic promotion found. Use full words (e.g., "Months" instead of "Mo.").
-- HL5-6: [Fixed AG Name] + core benefit.
+- HL4: The strongest generic promotion found. 
+  *SANITY CHECK*: NEVER exceed 95% off. If a higher number is found, use "Best Price Guaranteed".
+  *STRICT*: Use full words (e.g., "Months" instead of "Mo.").
+- HL5-6: [Fixed AG Name] + core benefit. 
+  NEVER end HL5-6 with a hyphen (-) or a hanging word.
 - HL7-15: 9 UNIQUE high-conversion marketing hooks. No repetition.
 
 Descriptions (Strictly 80-90 characters):
 - Description 1: MUST start with "Find the best". 
   Template: "Find the best [Fixed AG Name]. [Offer found in HL4]. [Short CTA]."
 - Description 2: MUST start with "Compare the best". 
-  Template: "Compare the best [Fixed AG Name]. [Offer details]. [Short CTA]."
-- Description 3 (Contextual Feature List): A punchy list of 3-4 features separated by dots.
-- Description 4 (Hard-Sale Closing): A high-urgency, aggressive closing statement.
+  Template: "Compare the best [Fixed AG Name]. [Benefit details]. [Short CTA]."
+- Description 3: A punchy list of 3-4 features separated by dots.
+- Description 4: A high-urgency, aggressive closing statement.
 
 Step 3: Final Polishing Rules
 - NO BRAND NAMES. FULL WORDS ONLY. COMPLETE THOUGHTS ONLY.
-- Every description must finish with a period, exclamation mark, or question mark.
+- Every description must finish its last sentence completely with a period, exclamation mark, or question mark.
 - Ensure NO hanging words or symbols at the end.
 - Output MUST be in JSON format.
 `;
@@ -37,7 +40,7 @@ Step 3: Final Polishing Rules
 function smartTrim(text, limit, minLen = 0) {
   text = String(text).trim();
 
-  // הגנה על קוסטומייזרים - אם הטקסט מכיל סוגריים מסולסלים, לא חותכים אותו
+  // הגנה על קוסטומייזרים - מניעת חיתוך של סוגריים מסולסלים
   if (text.includes("{") && text.includes("}")) return text;
 
   if (text.length > limit) {
@@ -120,7 +123,7 @@ async function scrapeSite(url) {
 
 async function runMasterV1(category, agName, url, apiKey) {
   const context = await scrapeSite(url);
-  // ה-Bypass החדש והתקני לקוסטומייזר
+  // הגדרת ה-Bypass הקשיח לקוסטומייזר
   const h3Bypass = "Updated: {=CUSTOMIZER.Month}";
 
   const prompt = `
@@ -131,14 +134,14 @@ async function runMasterV1(category, agName, url, apiKey) {
     Ad Group: ${agName}
 
     STRICT TASK INSTRUCTIONS:
-    - FIX TYPOS: Fix any spelling errors in "${agName}".
-    - NOUN SELECTION: Identify the industry from context and choose the best plural noun (e.g., Programs, Medications, Apps).
+    - FIX TYPOS: Correct "${agName}" if it has a spelling error.
+    - NOUN: Identify the niche and pick the best plural noun.
+    - REDUNDANCY: Avoid repeating words (e.g., if AG is "App Builder", don't say "App Builder Apps").
     - HL1: "10 Best [Fixed AG] [Noun]".
     - HL2: "Top 10 [Fixed AG] [Noun]" (Mirror HL1).
     - HL3: MUST be EXACTLY "${h3Bypass}".
-    - HL4: Extract the strongest offer. MAX 100% OFF.
-    - HL5-6: [Fixed AG Name] + Benefit. No hanging words.
-    - ALL DESCRIPTIONS: Strictly 80-90 characters. Every sentence must be COMPLETE and end with punctuation.
+    - HL4: Strongest offer. MAX 95% OFF. If context says 100% or more, use "Special Offer Today".
+    - ALL DESCRIPTIONS: Strictly 80-90 characters. Complete thoughts only.
 
     JSON Output format: {"headlines": [], "descriptions": []}
   `;
@@ -161,15 +164,18 @@ async function runMasterV1(category, agName, url, apiKey) {
   });
 
   const result = await response.json();
-  if (result.error) throw new Error(result.error.message);
 
-  const data = JSON.parse(result.choices[0].message.content);
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  const text = result.choices[0].message.content;
+  const data = JSON.parse(text);
   
-  // עיבוד כותרות ותיאורים
   let h = (data.headlines || []).map((x) => smartTrim(x, 30));
   const d = (data.descriptions || []).map((x) => smartTrim(x, 90, 80));
 
-  // דריסה סופית של HL3 למניעת טעויות AI
+  // דריסה סופית של HL3 כדי להבטיח קוסטומייזר תקין
   if (h.length >= 3) h[2] = h3Bypass;
 
   const catHooks = getCategoryFallbacks(category);
@@ -188,14 +194,14 @@ async function runMasterV1(category, agName, url, apiKey) {
     }
   });
 
-  // מילוי ל-15 כותרות במידה וחסר
+  // מילוי ל-15 כותרות במידת הצורך תוך שמירה על ייחודיות
   while (finalH.length < 15) {
     const fallback = smartTrim(catHooks[finalH.length % catHooks.length], 30);
     if (!seen.has(fallback.toLowerCase())) {
         finalH.push(fallback);
         seen.add(fallback.toLowerCase());
     } else {
-        finalH.push(fallback + " Now"); // הבטחת ייחודיות
+        finalH.push(smartTrim(fallback + " Now", 30));
     }
   }
 
