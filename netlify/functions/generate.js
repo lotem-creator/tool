@@ -7,30 +7,30 @@ Role: Senior PPC Copywriter expert in Direct Response for Search Ads (RSA). You 
 Step 1: Analysis & Extraction
 - Scan URL context for the strongest offers and promotions. Extract the primary value proposition (e.g., "50% Off", "Money Back Guarantee", "Get $30 Free").
 - INDUSTRY NOUN SELECTION: Scan the context to identify the niche. Choose the most professional PLURAL noun (e.g., "Programs" for Tax, "Medications" for Pharma, "Apps" for Software, "Builders" for Tools).
-- REDUNDANCY RULE: Do not repeat nouns. If the Ad Group Name contains the noun (e.g., "App Builder"), do not add "Apps" again at the end.
-- SPELLING FIX: Automatically fix typos in the Ad Group Name (e.g., "bulid" -> "build").
+- REDUNDANCY RULE: Do not repeat nouns. If the Ad Group Name contains the noun (e.g., "App Builder"), do not add "Apps" again at the end of HL1/HL2.
+- SPELLING FIX: Automatically fix typos in the Ad Group Name (e.g., "bulid" -> "build") and use the corrected version in all assets.
 - Strip brand names: Use generic category terms only to ensure broad quality score relevance and avoid policy issues with competitors.
 
 Step 2: Asset Structure & Character Limits
 Headlines (Max 30 chars):
-- HL1: "10 Best [Fixed AG Topic] [Chosen Noun]" (Must be Plural). Example: "10 Best Semaglutide Medications".
-- HL2: "Top 10 [Fixed AG Topic] [Chosen Noun]" (Mirror HL1).
+- HL1: "10 Best [Fixed AG Name] [Chosen Noun]" (Must be Plural). Example: "10 Best Semaglutide Medications".
+- HL2: "Top 10 [Fixed AG Name] [Chosen Noun]" (Mirror HL1).
   *MIRROR RULE*: HL2 must use the exact same noun and topic as HL1, but switch "10 Best" to "Top 10".
   *AUTHORITY RULE*: Match the noun to the category. Use "Sites" for Casino, "Services" for Tax/Legal, "Apps" for VPN, "Providers", "Systems", or "Treatments".
   STRICT: Ensure the noun is PLURAL (e.g., Systems instead of System). AVOID generic words like "Options" or "Programs" for medical niches.
 - HL3 (Bypass): MUST BE EXACTLY: Updated: {=CUSTOMIZER.Month}
 - HL4: The strongest generic promotion found. 
-  *REALISM RULE*: NEVER exceed 95% off. If context says 100% or more, use "Special Offer Today".
+  *REALISM RULE*: NEVER exceed 95% off. Any discount found above 100% is an error - use "Special Offer" or "50% Off" instead.
   *STRICT RULE*: ALWAYS use full words (e.g., "Months" instead of "Mo.", "First" instead of "1st", "Off" instead of "Disc") if the total length remains under 30 characters.
 - HL5-6: [Fixed AG Name] + core benefit.
   *CRITICAL*: If [AG Name] is long (over 15 chars), shorten it and use a high-impact verb (e.g., "Resolve Debt Now", "Lose Weight Fast").
-  NEVER end HL5-6 with a hyphen (-) or a hanging word like "no", "with", "the", "if", "you".
+  NEVER end HL5-6 with a hyphen (-), or hanging words like "no", "with", "if", "you", "the", "and".
 - HL7-15: 9 UNIQUE high-conversion marketing hooks. No repetition. Examples: "Verified Results", "100% Satisfaction", "Start In Minutes", "Expert Advisors".
 
 Descriptions (Strictly 80-90 characters):
-- Description 1: MUST start with "Find the best".
+- Description 1: MUST start with "Find the best". 
   Template: "Find the best [Fixed AG Name]. Get [Offer found in HL4]. [Short CTA]." (Total 80-90 chars).
-- Description 2: MUST start with "Compare the best".
+- Description 2: MUST start with "Compare the best". 
   Template: "Compare the best [Fixed AG Name]. [Offer details]. [Short CTA]." (Total 80-90 chars).
 - Description 3 (Contextual Feature List): A punchy list of 3-4 features separated by dots.
   Example: "A+ BBB Rating. 24/7 Expert Support. No Credit Impact. Fast Online Application."
@@ -39,21 +39,32 @@ Descriptions (Strictly 80-90 characters):
 
 Step 3: Final Polishing Rules
 - NO BRAND NAMES. FULL WORDS ONLY. COMPLETE THOUGHTS ONLY.
+- CASE RULE: All assets (Headlines & Descriptions) must be in Proper Case (Capitalize Every Word).
 - Every asset must make sense on its own. Every description must finish its last sentence completely with a period, exclamation mark, or question mark.
-- Ensure NO hanging words or symbols at the end (like "for", "the", "on", "of", "to", "with", "&", "+", "Secure", "Start", "Find", "Compare", "no", "if", "you").
+- Ensure NO hanging words or symbols at the end (like "for", "the", "on", "of", "to", "with", "&", "+", "no", "if", "you", "a", "an").
 - Output MUST be in JSON format.
 `;
+
+function toProperCase(str) {
+  if (!str) return str;
+  return str.split(' ').map(word => {
+    if (word.includes('{') || word.includes('}') || word.includes('=') || word.includes(':')) {
+      return word;
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
+}
 
 function smartTrim(text, limit, minLen = 0) {
   text = String(text).trim();
 
-  // הגנה על קוסטומייזרים - אם הטקסט מכיל סוגריים מסולסלים, לא חותכים אותו
   if (text.includes("{") && text.includes("}")) {
     return text;
   }
 
-  // מסנן קשיח נגד הזיות של מספרים מעל 100% שדלפו מה-AI
-  text = text.replace(/1[0-9]{2}%/g, "50%"); 
+  // שסתום ביטחון נגד 130%
+  text = text.replace(/[1-9][0-9]{2,}%/g, "50%"); 
+  text = text.replace(/100%/g, "95%");
 
   if (text.length > limit) {
     const truncated = text.substring(0, limit);
@@ -62,19 +73,22 @@ function smartTrim(text, limit, minLen = 0) {
   }
 
   const badEnds = [
-    " for", " with", " and", " the", " our", " get", " on", " a", " no",
+    " for", " with", " and", " the", " our", " get", " on", " a", " an",
     " your", " free", " of", " in", " to", " is", " or", " by", " if", " you",
-    " &", " +", " -", " secure", " start", " find", " compare", " with no",
+    " no", " with no", " &", " +", " -", " secure", " start", " find", " compare",
+    ", no", ", if", ", with", ", the"
   ];
+  
   const pattern = new RegExp(
     "(" + badEnds.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")$",
     "i"
   );
+  
   while (pattern.test(text)) {
     text = text.replace(pattern, "").trim();
   }
 
-  if (!/[.!?]$/.test(text)) {
+  if (!/[.!?]$/.test(text) && limit > 30) {
     const lastPunct = Math.max(text.lastIndexOf("."), text.lastIndexOf("!"), text.lastIndexOf("?"));
     if (lastPunct !== -1) {
       text = text.substring(0, lastPunct + 1).trim();
@@ -135,26 +149,20 @@ async function scrapeSite(url) {
 
 async function runMasterV1(category, agName, url, apiKey) {
   const context = await scrapeSite(url);
-  // הגדרה קשיחה של ה-Bypass כדי למנוע חיתוך או שינוי של ה-AI
   const h3Bypass = "Updated: {=CUSTOMIZER.Month}";
 
   const prompt = `
     SCAN CONTEXT: ${context}
-
-    INPUTS:
-    Category: ${category}
-    Ad Group: ${agName}
+    INPUTS: Category: ${category} | Ad Group: ${agName}
 
     STRICT TASK INSTRUCTIONS:
     - FIX TYPOS: Correct "${agName}" if it has a spelling error.
-    - NOUN: Identify the niche from context and pick the best plural industry noun.
-    - REDUNDANCY: Avoid repeating nouns (e.g., if AG is "App Builder", don't say "App Builder Apps").
+    - NOUN: Choose the best plural industry noun (Programs/Medications/Apps/Builders).
     - HL1: "10 Best [Fixed AG] [Noun]".
-    - HL2: "Top 10 [Fixed AG] [Noun]" (Mirror HL1).
+    - HL2: "Top 10 [Fixed AG] [Noun]".
     - HL3: MUST be EXACTLY "${h3Bypass}".
-    - HL4: Extract the strongest offer. MAX 95% OFF. No hanging words like "if you".
-    - ALL ASSETS: Ensure NO hanging words like "no", "if", "you", "with" at the end.
-    - ALL DESCRIPTIONS: Strictly 80-90 characters. Every sentence must be COMPLETE and end with punctuation.
+    - HL4: Strongest offer. MAX 95% OFF.
+    - ALL ASSETS: Proper Case (Capitalize every word). No hanging words at the end.
 
     JSON Output format: {"headlines": [], "descriptions": []}
   `;
@@ -177,18 +185,13 @@ async function runMasterV1(category, agName, url, apiKey) {
   });
 
   const result = await response.json();
+  if (result.error) throw new Error(result.error.message);
 
-  if (result.error) {
-    throw new Error(result.error.message);
-  }
-
-  const text = result.choices[0].message.content;
-  const data = JSON.parse(text);
+  const data = JSON.parse(result.choices[0].message.content);
   
-  let h = (data.headlines || []).map((x) => smartTrim(x, 30));
-  const d = (data.descriptions || []).map((x) => smartTrim(x, 90, 80));
+  let h = (data.headlines || []).map((x) => toProperCase(smartTrim(x, 30)));
+  const d = (data.descriptions || []).map((x) => toProperCase(smartTrim(x, 90, 80)));
 
-  // דריסה סופית של HL3 כדי להבטיח קוסטומייזר תקין ללא תלות ב-AI
   if (h.length >= 3) {
     h[2] = h3Bypass;
   }
@@ -201,22 +204,19 @@ async function runMasterV1(category, agName, url, apiKey) {
     if (i < 6) {
       finalH.push(val);
       seen.add(val.toLowerCase());
-    } else {
-      if (!seen.has(val.toLowerCase()) && finalH.length < 15) {
-        finalH.push(val);
-        seen.add(val.toLowerCase());
-      }
+    } else if (!seen.has(val.toLowerCase()) && finalH.length < 15) {
+      finalH.push(val);
+      seen.add(val.toLowerCase());
     }
   });
 
-  // מילוי ל-15 כותרות במידת הצורך תוך שמירה על ייחודיות
   while (finalH.length < 15) {
-    const fallback = smartTrim(catHooks[finalH.length % catHooks.length], 30);
+    const fallback = toProperCase(smartTrim(catHooks[finalH.length % catHooks.length], 30));
     if (!seen.has(fallback.toLowerCase())) {
         finalH.push(fallback);
         seen.add(fallback.toLowerCase());
     } else {
-        finalH.push(smartTrim(fallback + " Now", 30));
+        finalH.push(fallback + " Now");
     }
   }
 
@@ -231,27 +231,19 @@ exports.handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
-  }
+  if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers, body: "" };
+  if (event.httpMethod !== "POST") return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
 
   try {
     const body = JSON.parse(event.body);
     const { category, agName, url, password } = body;
 
-    const appPassword = process.env.APP_PASSWORD || "Moonshot123";
-    if (password !== appPassword) {
+    if (password !== (process.env.APP_PASSWORD || "Moonshot123")) {
       return { statusCode: 401, headers, body: JSON.stringify({ error: "Invalid password" }) };
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return { statusCode: 500, headers, body: JSON.stringify({ error: "OPENAI_API_KEY not configured" }) };
-    }
+    if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: "OPENAI_API_KEY not configured" }) };
 
     const result = await runMasterV1(category, agName, url, apiKey);
     return { statusCode: 200, headers, body: JSON.stringify(result) };
