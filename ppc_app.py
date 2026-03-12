@@ -144,19 +144,18 @@ def run_master_v1(category, ag_name, url):
     Ad Group: {ag_name}
     
     STRICT TASK INSTRUCTIONS:
-    - HL1: "10 Best [Natural Topic Name] [Plural Noun]" where [Plural Noun] MUST be ONE of: Services/Providers/Apps/Platforms/Sites/Streaming Services/Tools/Solutions.
+    - ALL HEADLINES: STRICTLY MAX 30 CHARACTERS.
+    - HL1: "10 Best [Topic] [Noun]" (Choose short nouns like Apps/Sites/Pros/Tools to stay under 30 chars).
     - HL1 Examples:
-      * Ad Group "how to watch espn for free" -> "10 Best ESPN Streaming Services"
-      * Ad Group "watch champions league" -> "10 Best Champions League Streaming Services"
-      * Ad Group "build my app" -> "10 Best App Builders"
-      * Ad Group "free anti virus" -> "10 Best Antivirus Apps"
-      * Ad Group "tax relief programs" -> "10 Best Tax Relief Services"
-    - RULE: NEVER use raw verbs in HL1/HL2. Extract the SUBJECT (what the user wants), not the action (how they want it).
-    - HL2: "Top 10 [Natural Topic Name] [Plural Noun]" (Mirror HL1 - exact same topic and noun).
-    - HL3: MUST be "{h3_bypass}" (COPY THIS EXACT STRING, DO NOT CHANGE EVEN ONE CHARACTER).
-    - HL4: Extract the strongest offer. If user intent is "Free", prioritize "Free Trial" or "No-Cost Access".
-    - HL5-6: Action-oriented benefit headlines. No hanging words. Max 30 chars.
-    - BRANDING: Acronyms like ESPN, HD, DVR, 4K, NFL MUST stay in full UPPERCASE in your raw output.
+      * Ad Group "watch champions league" -> "10 Best Champions League Pros" (29 chars)
+      * Ad Group "how to watch espn for free" -> "10 Best ESPN Streaming Apps" (27 chars)
+      * Ad Group "free anti virus" -> "10 Best Antivirus Apps" (22 chars)
+    - RULE: If [Topic] is long, use the shortest possible [Noun].
+    - HL2: "Top 10 [Topic] [Noun]" (Mirror HL1 - must be <30 chars).
+    - HL3: MUST be "{h3_bypass}" (DO NOT CHANGE).
+    - HL4: Strongest Offer (Max 30 chars).
+    - HL5-6: Ad Intent + Benefit (Max 30 chars).
+    - BRANDING: Acronyms like ESPN, NFL, HD, DVR MUST stay UPPERCASE.
     - Description 1: MUST start with "Find the best". 
     - Description 2: MUST start with "Compare the best".
     - Description 3: MUST be a dot-separated list of 4 features.
