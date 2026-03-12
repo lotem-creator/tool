@@ -145,12 +145,13 @@ def run_master_v1(category, ag_name, url):
     
     STRICT TASK INSTRUCTIONS:
     - ALL HEADLINES: STRICTLY MAX 30 CHARACTERS.
-    - HL1: "10 Best [Topic] [Noun]" (Choose short nouns like Apps/Sites/Pros/Tools to stay under 30 chars).
+    - HL1: "10 Best [Topic] [Noun]" (MUST be <30 chars).
+    - HL1 Nouns: Use relevant nouns like Sites/Apps/Streams. Avoid generic "Pros".
     - HL1 Examples:
-      * Ad Group "watch champions league" -> "10 Best Champions League Pros" (29 chars)
+      * Ad Group "watch champions league" -> "10 Best Champions League Sites" (30 chars)
+      * Ad Group "watch champions league" -> "10 Best UCL Streaming Sites" (27 chars - Use UCL for short)
       * Ad Group "how to watch espn for free" -> "10 Best ESPN Streaming Apps" (27 chars)
-      * Ad Group "free anti virus" -> "10 Best Antivirus Apps" (22 chars)
-    - RULE: If [Topic] is long, use the shortest possible [Noun].
+    - RULE: If a topic is too long, use established acronyms (e.g., UCL, NFL, etc.) to fit the 30-char limit.
     - HL2: "Top 10 [Topic] [Noun]" (Mirror HL1 - must be <30 chars).
     - HL3: MUST be "{h3_bypass}" (DO NOT CHANGE).
     - HL4: Strongest Offer (Max 30 chars).
@@ -179,7 +180,7 @@ def run_master_v1(category, ag_name, url):
         def proper(text):
             protected = [
                 # Sports Leagues
-                "ESPN", "NFL", "NBA", "MLB", "NHL", "MLS", "UFC", "FIFA", "IPL", "NASCAR",
+                "ESPN", "NFL", "NBA", "MLB", "NHL", "MLS", "UFC", "FIFA", "IPL", "NASCAR", "UCL",
                 # Tech & Devices
                 "HD", "4K", "UHD", "OLED", "LCD", "LED", "PC", "MAC", "iOS", "TV",
                 "SSD", "HDD", "RAM", "CPU", "GPU", "USB", "VPN", "AI", "API", "UI", "UX",
