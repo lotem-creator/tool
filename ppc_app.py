@@ -133,7 +133,7 @@ def scrape_site(url):
 
 def run_master_v1(category, ag_name, url):
     context = scrape_site(url)
-    h3_bypass = "Last Updated: {CUSTOMIZER.Month:2026}"
+    h3_bypass = "Last Update:{CUSTOMIZER.Month}"
     
     # הפרומפט המקסימלי לשימוש ה-AI - כאן נמצא כל הפירוט
     prompt = f"""
@@ -178,14 +178,15 @@ def run_master_v1(category, ag_name, url):
         )
         data = json.loads(response.choices[0].message.content)
         def proper(text):
+            if "{" in str(text) and "}" in str(text): return str(text) # Bypass for customizer tags
             protected = [
                 # Sports Leagues
                 "ESPN", "NFL", "NBA", "MLB", "NHL", "MLS", "UFC", "FIFA", "IPL", "NASCAR", "UCL",
                 # Tech & Devices
                 "HD", "4K", "UHD", "OLED", "LCD", "LED", "PC", "MAC", "iOS", "TV",
-                "SSD", "HDD", "RAM", "CPU", "GPU", "USB", "VPN", "AI", "API", "UI", "UX",
+                "SSD", "HDD", "RAM", "CPU", "GPU", "USB", "VPN", "AI", "API", "UI", "UX", "VOIP",
                 # Streaming / Media
-                "HBO", "VOD", "DVR", "VOIP",
+                "HBO", "VOD", "DVR",
                 # Business / Marketing
                 "PPC", "SEO", "ROI", "CPC", "CPM", "CTR", "CRM", "ERP", "LLC", "IRS",
                 "B2B", "B2C", "SaaS",
@@ -197,6 +198,10 @@ def run_master_v1(category, ag_name, url):
             words = str(text).split()
             proper_words = []
             for word in words:
+                # Bypass single words with tags too
+                if "{" in word:
+                    proper_words.append(word)
+                    continue
                 # Handle hyphens by splitting first
                 parts = word.split('-')
                 proper_parts = []
@@ -270,7 +275,7 @@ with t1:
         h, d, mode, ag, cp = st.session_state.res
         with c2:
             mo_display = datetime.now().strftime("%B %Y")
-            display_h3 = h[2].replace('{CUSTOMIZER.Month:2026}', mo_display)
+            display_h3 = h[2].replace('{CUSTOMIZER.Month}', mo_display)
             st.markdown(f"""
                 <div class="ad-preview">
                     <div class="preview-headline">HL1: {h[0]}</div>
@@ -286,6 +291,12 @@ with t1:
             for i in range(15): row[f"Headline {i+1}"] = h[i]
             for i in range(4): row[f"Description {i+1}"] = d[i]
             st.download_button("📥 Download RSA CSV", pd.DataFrame([row]).to_csv(index=False).encode('utf-8'), f"{ag}_V1.csv")
+            
+            st.divider()
+            st.markdown("### All Headlines")
+            for i, val in enumerate(h):
+                color = "red" if len(val) > 30 else "blue"
+                st.markdown(f"**HL{i+1}:** <span style='color:{color}'>{val}</span> <small>({len(val)})</small>", unsafe_allow_html=True)
 
 with t2:
     st.markdown("### 📦 Bulk Agent Processor")
