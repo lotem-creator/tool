@@ -2,5 +2,6 @@ streamlit
 pandas
 requests
 beautifulsoup4
-google-generativeai
+soupsieve>=1.6.1
+openai
 openpyxl
