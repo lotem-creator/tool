@@ -185,7 +185,7 @@ def run_master_v1(category, ag_name, url):
                 "HD", "4K", "UHD", "OLED", "LCD", "LED", "PC", "MAC", "iOS", "TV",
                 "SSD", "HDD", "RAM", "CPU", "GPU", "USB", "VPN", "AI", "API", "UI", "UX",
                 # Streaming / Media
-                "HBO", "VOD", "DVR",
+                "HBO", "VOD", "DVR", "VOIP",
                 # Business / Marketing
                 "PPC", "SEO", "ROI", "CPC", "CPM", "CTR", "CRM", "ERP", "LLC", "IRS",
                 "B2B", "B2C", "SaaS",
